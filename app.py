@@ -15,12 +15,14 @@ app = Flask(__name__)
 
 load_dotenv()
 
+POSTGRES_ID=os.getenv("POSTGRES_ID")
+POSTGRES_PW=os.getenv("POSTGRES_PW")
 DATABASE_URL=os.getenv("DATABASE_URL")
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+# app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.debug = True
 
@@ -152,7 +154,9 @@ async def get_massages_from_chatbot():
 
     return "loading..."
 
-
+@app.route('/')
+def hello():
+    return "hello"
 
 # 프론트로부터 요청
 @app.route('/frontend/getUsers/')
