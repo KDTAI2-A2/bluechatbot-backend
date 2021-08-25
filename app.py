@@ -17,7 +17,7 @@ load_dotenv()
 
 POSTGRES_ID=os.getenv("POSTGRES_ID")
 POSTGRES_PW=os.getenv("POSTGRES_PW")
-DATABASE_URL=os.getenv("DATABASE_URL")
+DATABASE_URL=os.getenv("DB_URL")
 
 # app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
 
