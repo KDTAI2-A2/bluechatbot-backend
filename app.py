@@ -1,5 +1,6 @@
 from flask import Flask, json, request, jsonify, abort
 import time
+from flask_cors.decorator import cross_origin
 import requests
 import asyncio
 import asgiref
@@ -163,6 +164,7 @@ def hello():
 
 # 프론트로부터 요청
 @app.route('/frontend/getUsers/')
+@cross_origin()
 def request_users_data():
     customers = db.session.query(Customer).all()
     data = []
@@ -172,6 +174,7 @@ def request_users_data():
     return jsonify(data)
 
 @app.route('/frontend/getUser/<int:id>/')
+@cross_origin()
 def request_user_data(id):
     customer = db.session.query(Customer).filter(Customer.kakao_id == id).one()
     data = []
@@ -181,6 +184,7 @@ def request_user_data(id):
     return jsonify(data)
 
 @app.route('/frontend/getUser/<int:id>/getDate/<date>/')
+@cross_origin()
 def request_date_data(id, date):
     imotions = {}
     words = {}
