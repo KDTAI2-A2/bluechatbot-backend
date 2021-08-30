@@ -3,6 +3,7 @@ import time
 import requests
 import asyncio
 import asgiref
+from flask_cors import CORS
 
 
 from flask_sqlalchemy import SQLAlchemy
@@ -12,6 +13,7 @@ import time
 import os
 
 app = Flask(__name__)
+CORS(app)
 
 load_dotenv()
 
@@ -141,8 +143,8 @@ async def get_massages_from_chatbot():
 
     # 넘어온 JSON에서 메세지 받아 임시 리스트에 append
     body = request.get_json()
+    print(body)
     message_to_model = body['userRequest']['utterance']
-    print(message_to_model)
     message_list.append(message_to_model)
 
     # 처음 대화가 시작되는 순간에만 사용하기 위해 count_start 를 바꿔줌
