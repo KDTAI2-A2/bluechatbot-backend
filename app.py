@@ -7,6 +7,7 @@ import asgiref
 from flask_cors import CORS
 
 
+
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql.sqltypes import ARRAY
 from dotenv import load_dotenv
@@ -14,6 +15,8 @@ import time
 import os
 
 app = Flask(__name__)
+
+
 CORS(app)
 
 load_dotenv()
@@ -22,7 +25,7 @@ POSTGRES_ID=os.getenv("POSTGRES_ID")
 POSTGRES_PW=os.getenv("POSTGRES_PW")
 DATABASE_URL=os.getenv("DB_URL")
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
+# app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-test"
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
@@ -126,12 +129,18 @@ async def waiting(body):
         if wait_count > 4:
             global count_start
             count_start = False
-            message_to_model = jsonify("".join(message_list))
+            message_to_model = "".join(message_list)
+            message_to_model = json.dumps({"msg":message_to_model}, ensure_ascii=False).encode('utf-8')
+            
+            print(message_to_model, type(message_to_model))
             # API로 리턴 받은 대답을 리턴해줌
-            imotion, words, reply = await requests.post('/AI/sendMessage/', message_to_model)
+            result = requests.post('http://ec2-54-180-203-163.ap-northeast-2.compute.amazonaws.com/AI/sendMessage/', data=message_to_model)
+            result = result.json()
             # 대화 내용과 결과를 DB에 저장
+            imotion = result[0]
+            words = result[1]
+            reply = result[2]
             text_from_chat(body, imotion, words, message_to_model, reply)
-
             # 대답후 사용자의 대화를 받기 위해 리스트 초기화
             message_list = []
             return reply
@@ -148,7 +157,6 @@ async def get_massages_from_chatbot():
     body = request.get_json()
     message_to_model = body['userRequest']['utterance']
     message_list.append(message_to_model)
-    print(message_to_model)
 
     # 처음 대화가 시작되는 순간에만 사용하기 위해 count_start 를 바꿔줌
     # 두번째 말풍선부턴 실행되지 않음
@@ -156,7 +164,19 @@ async def get_massages_from_chatbot():
         count_start = True
         # waiting() 으로 완성된 문구를 리턴받음
         result = await waiting(body)
-        return result
+        answer = {
+            "version":"2.0",
+            "template":{
+                "outputs":[
+                    {
+                        "simpleText":{
+                            "text": result
+                        }
+                    }
+                ]
+            }
+        }
+        return answer
 
     return "loading..."
 
