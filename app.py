@@ -39,7 +39,7 @@ class Customer(db.Model):
     __tablename__="Customer"
 
     id = db.Column(db.Integer, primary_key=True)
-    kakao_id = db.Column(db.Integer)
+    kakao_id = db.Column(db.String())
     datas = db.relationship('ChatList', backref='customer')
 
 class ChatList(db.Model):
