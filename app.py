@@ -74,10 +74,10 @@ count_start = False
 
 def find_or_create_user(user_id):
     try:
-        customer = db.session.query(Customer).filter(Customer.kakao_id==int(user_id)).one()
+        customer = db.session.query(Customer).filter(Customer.kakao_id==user_id).one()
         return customer
     except:
-        customer = Customer(kakao_id=int(user_id))
+        customer = Customer(kakao_id=user_id)
         db.session.add(customer)
         db.session.commit()
         return customer
