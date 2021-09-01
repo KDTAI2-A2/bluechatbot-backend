@@ -62,7 +62,7 @@ class Chat(db.Model):
     chatlist_id = db.Column(db.Integer, db.ForeignKey('ChatList.id'), nullable=False)
     
 
-
+# 초기화
 db.create_all()
 
 
