@@ -54,6 +54,8 @@ class Chat(db.Model):
     timestamp = db.Column(db.DateTime)
     imotion = db.Column(db.String())
     words = db.Column(ARRAY(db.String))
+    user_message = db.Column(db.String())
+    bot_message = db.Column(db.String())
     chatlist_id = db.Column(db.Integer, db.ForeignKey('ChatList.id'), nullable=False)
     
 
@@ -88,8 +90,8 @@ def find_or_create_date(today, customer):
         return chatlist
 
 # time_stamp:시간, imotion:숫자, words:단어 리스트, chatlist:귀속할 챗리스트
-def create_chat(time_stamp, imotion, words, chatlist):
-    chat = Chat(timestamp=time_stamp, imotion=imotion, words=words, chatlist=chatlist)
+def create_chat(time_stamp, imotion, words, chatlist, message_to_model, reply):
+    chat = Chat(timestamp=time_stamp, imotion=imotion, words=words, chatlist=chatlist, user_message=message_to_model, bot_message=reply)
     db.session.add(chat)
     db.session.commit()
     return
@@ -99,7 +101,7 @@ def get_today():
     return f"{today.tm_year}-{today.tm_mon}-{today.tm_mday}"
 
 
-def text_from_chat(request_data, imotion, words):
+def text_from_chat(request_data, imotion, words, message_to_model, reply):
     user_id = request_data['userRequest']['user']['id']
     time_stamp = time.ctime(time.time())
     today = get_today()
@@ -108,7 +110,7 @@ def text_from_chat(request_data, imotion, words):
 
     chatlist = find_or_create_date(today, customer)
     
-    create_chat(time_stamp, imotion, words, chatlist)    
+    create_chat(time_stamp, imotion, words, chatlist, message_to_model, reply)    
 
 
 async def waiting(body):
@@ -128,7 +130,7 @@ async def waiting(body):
             # API로 리턴 받은 대답을 리턴해줌
             imotion, words, reply = await requests.post('/AI/sendMessage/', message_to_model)
             # 대화 내용과 결과를 DB에 저장
-            text_from_chat(body, imotion, words)
+            text_from_chat(body, imotion, words, message_to_model, reply)
 
             # 대답후 사용자의 대화를 받기 위해 리스트 초기화
             message_list = []
@@ -158,6 +160,8 @@ async def get_massages_from_chatbot():
 
     return "loading..."
 
+
+
 @app.route('/')
 def hello():
     return "hello"
@@ -179,7 +183,7 @@ def request_user_data(id):
     customer = db.session.query(Customer).filter(Customer.kakao_id == id).one()
     data = []
     for date in customer.datas:
-        json = {"id": id, "kakao_id":customer.kakao_id,"date":date.chat_open_date}
+        json = {"id": date.id, "kakao_id":customer.kakao_id,"date":date.chat_open_date}
         data.append(json)
     return jsonify(data)
 
@@ -188,11 +192,18 @@ def request_user_data(id):
 def request_date_data(id, date):
     imotions = {}
     words = {}
+    usr_msg = []
+    bot_msg = []
 
     customer = db.session.query(Customer).filter(Customer.kakao_id == id).one()
     date = db.session.query(ChatList).with_parent(customer).filter(ChatList.chat_open_date == date).one()
 
     for message in date.messages:
+        try:
+            usr_msg.append(message.user_message)
+            bot_msg.append(message.bot_message)
+        except:
+            print("error")
         try:
             imotions[str(message.imotion)] += 1
         except:
@@ -208,7 +219,7 @@ def request_date_data(id, date):
     sorted_imotions = sorted(imotions.items(), key=f1, reverse=True)
     sorted_words = sorted(words.items(), key=f1, reverse=True)
 
-    return jsonify({"imotion_rank":sorted_imotions,"word_rank":sorted_words})
+    return jsonify({"imotion_rank":sorted_imotions,"word_rank":sorted_words, "user_message": usr_msg, "bot_message": bot_msg} )
 
 
 if __name__ == '__main__':
