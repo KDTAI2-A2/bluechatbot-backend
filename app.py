@@ -177,7 +177,7 @@ async def get_massages_from_chatbot():
                 ]
             }
         }
-        return answer
+        return jsonify(answer)
 
     return "loading..."
 
