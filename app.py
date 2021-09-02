@@ -27,10 +27,10 @@ POSTGRES_PW=os.getenv("POSTGRES_PW")
 DATABASE_URL=os.getenv("DB_URL")
 NAVER_API=os.getenv("NAVER_API")
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-test"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+# app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.debug = True
 
@@ -222,6 +222,8 @@ def request_date_data(id, date):
     usr_msg = []
     bot_msg = []
 
+    date_id=date
+
     customer = db.session.query(Customer).filter(Customer.kakao_id == id).one()
     date = db.session.query(ChatList).with_parent(customer).filter(ChatList.chat_open_date == date).one()
 
@@ -246,7 +248,7 @@ def request_date_data(id, date):
     sorted_imotions = sorted(imotions.items(), key=f1, reverse=True)
     sorted_words = sorted(words.items(), key=f1, reverse=True)
 
-    return jsonify({"imotion_rank":sorted_imotions,"word_rank":sorted_words, "user_message": usr_msg, "bot_message": bot_msg} )
+    return jsonify({"date":date_id,"imotion_rank":sorted_imotions,"word_rank":sorted_words, "user_message": usr_msg, "bot_message": bot_msg} )
 
 
 if __name__ == '__main__':
