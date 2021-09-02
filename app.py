@@ -1,5 +1,6 @@
 from flask import Flask, json, request, jsonify, abort
 import time
+from flask.wrappers import Response
 from flask_cors.decorator import cross_origin
 import requests
 import asyncio
@@ -176,14 +177,14 @@ async def get_massages_from_chatbot():
             "event": "send",
             "user": user_key,
             "textContent":{
-                "text":"hello"
+                "text":result
             }
         }
         message = json.dumps(data)
         response = requests.post('https://gw.talk.naver.com/chatbot/v1/event', headers=headers, data=message)
         print("시스템 응답코드: ",response.status_code)
         print("시스템 응답내용: ",response.text)
-    return
+    return Response(status=200)
 
 
 
