@@ -1,0 +1,13 @@
+{
+    'event': 'send', 
+    'user': '4rCrjzdBlq2QOA_5YM0uzg', 
+    'messageId': 2, 
+    'textContent': {
+        'text': '안녕', 
+        'inputType': 'typing'
+        }, 
+    'options': {
+        'noReflectBot': False, 
+        'mobile': True
+        }
+    }

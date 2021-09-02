@@ -105,7 +105,7 @@ def get_today():
 
 
 def text_from_chat(request_data, imotion, words, message_to_model, reply):
-    user_id = request_data['userRequest']['user']['id']
+    user_id = request_data['user']
     print(user_id)
     time_stamp = time.ctime(time.time())
     today = get_today()
@@ -156,29 +156,21 @@ async def get_massages_from_chatbot():
 
     # 넘어온 JSON에서 메세지 받아 임시 리스트에 append
     body = request.get_json()
-    print(body)
-    # message_to_model = body['userRequest']['utterance']
-    # message_list.append(message_to_model)
-
-    # # 처음 대화가 시작되는 순간에만 사용하기 위해 count_start 를 바꿔줌
-    # # 두번째 말풍선부턴 실행되지 않음
-    # if count_start == False:
-    #     count_start = True
-    #     # waiting() 으로 완성된 문구를 리턴받음
-    #     result = await waiting(body)
-    #     answer = {
-    #         "version":"2.0",
-    #         "template":{
-    #             "outputs":[
-    #                 {
-    #                     "simpleText":{
-    #                         "text": result
-    #                     }
-    #                 }
-    #             ]
-    #         }
-    #     }
-    #     return jsonify(answer)
+    message_to_model = body['textContent']['text']
+    message_list.append(message_to_model)
+     # 처음 대화가 시작되는 순간에만 사용하기 위해 count_start 를 바꿔줌
+     # 두번째 말풍선부턴 실행되지 않음
+    if count_start == False:
+        count_start = True
+        # waiting() 으로 완성된 문구를 리턴받음
+        result = await waiting(body)
+        answer = {
+            "event": "send",
+            "textContent":{
+                "text": "asdf"
+            }
+        }
+        return jsonify(answer)
 
     return "loading..."
 
