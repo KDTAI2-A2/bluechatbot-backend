@@ -24,6 +24,7 @@ load_dotenv()
 POSTGRES_ID=os.getenv("POSTGRES_ID")
 POSTGRES_PW=os.getenv("POSTGRES_PW")
 DATABASE_URL=os.getenv("DB_URL")
+NAVER_API=os.getenv("NAVER_API")
 
 # app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-test"
 
@@ -157,7 +158,6 @@ async def get_massages_from_chatbot():
     # 넘어온 JSON에서 메세지 받아 임시 리스트에 append
     body = request.get_json()
     message_to_model = body['textContent']['text']
-    user = body['user']
     print(message_to_model)
     message_list.append(message_to_model)
      # 처음 대화가 시작되는 순간에만 사용하기 위해 count_start 를 바꿔줌
@@ -166,16 +166,25 @@ async def get_massages_from_chatbot():
         count_start = True
         # waiting() 으로 완성된 문구를 리턴받음
         result = await waiting(body)
-        answer = {
+
+        headers={
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Authorization': NAVER_API,
+        }
+        user_key = body['user']
+        data = {
             "event": "send",
-            "user": user,
+            "user": user_key,
             "textContent":{
-                "text": "asdf"
+                "text":"hello"
             }
         }
-        return jsonify(answer)
+        message = json.dumps(data)
+        response = requests.post('https://gw.talk.naver.com/chatbot/v1/event', headers=headers, data=message)
+        print("시스템 응답코드: ",response.status_code)
+        print("시스템 응답내용: ",response.text)
+        
 
-    return "loading..."
 
 
 
