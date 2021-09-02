@@ -183,7 +183,7 @@ async def get_massages_from_chatbot():
         response = requests.post('https://gw.talk.naver.com/chatbot/v1/event', headers=headers, data=message)
         print("시스템 응답코드: ",response.status_code)
         print("시스템 응답내용: ",response.text)
-        
+    return
 
 
 
