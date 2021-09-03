@@ -223,9 +223,11 @@ def request_date_data(id, date):
     usr_msg = []
     bot_msg = []
 
-    date_id=date
+    request_id = str(id)
 
-    customer = db.session.query(Customer).filter(Customer.kakao_id == id).one()
+    date_id=str(date)
+
+    customer = db.session.query(Customer).filter(Customer.kakao_id == request_id).one()
     date = db.session.query(ChatList).with_parent(customer).filter(ChatList.chat_open_date == date).one()
 
     for message in date.messages:
