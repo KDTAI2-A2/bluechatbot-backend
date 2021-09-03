@@ -207,7 +207,8 @@ def request_users_data():
 @app.route('/frontend/getUser/<int:id>/')
 @cross_origin()
 def request_user_data(id):
-    customer = db.session.query(Customer).filter(Customer.kakao_id == id).one()
+    request_id = str(id)
+    customer = db.session.query(Customer).filter(Customer.kakao_id == request_id).one()
     data = []
     for date in customer.datas:
         json = {"id": date.id, "kakao_id":customer.kakao_id,"date":date.chat_open_date}
