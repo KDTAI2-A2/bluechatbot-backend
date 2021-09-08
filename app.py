@@ -27,10 +27,10 @@ POSTGRES_PW=os.getenv("POSTGRES_PW")
 DATABASE_URL=os.getenv("DB_URL")
 NAVER_API=os.getenv("NAVER_API")
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+# app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.debug = True
 
@@ -51,6 +51,7 @@ class ChatList(db.Model):
     chat_open_date = db.Column(db.String())
     customer_id = db.Column(db.Integer, db.ForeignKey('Customer.id'), nullable=False)
     messages = db.relationship('Chat', backref='chatlist')
+
 
 class Chat(db.Model):
     __tablename__='Chat'
@@ -211,7 +212,15 @@ def request_user_data(id):
     customer = db.session.query(Customer).filter(Customer.kakao_id == request_id).one()
     data = []
     for date in customer.datas:
-        json = {"id": date.id, "kakao_id":customer.kakao_id,"date":date.chat_open_date}
+        imotion = {}
+        for chat in date.messages:
+            chat_imotion = str(chat.imotion)
+            imotion[chat_imotion] = True
+            
+        imotions =[k for k in imotion.keys() ] 
+        
+
+        json = {"id": date.id, "kakao_id":customer.kakao_id,"dates":{"date":date.chat_open_date, "imotions": imotions}}
         data.append(json)
     return jsonify(data)
 
