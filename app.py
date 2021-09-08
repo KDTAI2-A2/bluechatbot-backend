@@ -150,6 +150,7 @@ async def waiting(body, name):
             message_list = []
             return reply
 
+# 네이버에 result 이름으로 메세지 발송
 def send_to_naver(result, body):
     headers={
         'Content-Type': 'application/json;charset=UTF-8',
@@ -186,6 +187,7 @@ async def get_massages_from_chatbot():
         user_id = body['user']
         db.session.query(Customer).filter(Customer.kakao_id==user_id).one()
     except:
+        # 아이디가 없다면 메세지를 스플릿 해서 /이름 항목을 찾아서 이름 등록시킴
         command = message_to_model.split(' ')
         if '/이름' == command[0]:
             name = command[1]
@@ -198,6 +200,7 @@ async def get_massages_from_chatbot():
             send_to_naver(new_name_comment, body)
             return Response(status=200)
     else:
+        # 이름을 찾으면 정상적으로 진행
         print(message_to_model)
         message_list.append(message_to_model)
         # 처음 대화가 시작되는 순간에만 사용하기 위해 count_start 를 바꿔줌
@@ -207,22 +210,7 @@ async def get_massages_from_chatbot():
             # waiting() 으로 완성된 문구를 리턴받음
             result = await waiting(body, name)
             send_to_naver(result, body)
-            # headers={
-            #     'Content-Type': 'application/json;charset=UTF-8',
-            #     'Authorization': NAVER_API,
-            # }
-            # user_key = body['user']
-            # data = {
-            #     "event": "send",
-            #     "user": user_key,
-            #     "textContent":{
-            #         "text":result
-            #     }
-            # }
-            # message = json.dumps(data)
-            # response = requests.post('https://gw.talk.naver.com/chatbot/v1/event', headers=headers, data=message)
-            # print("시스템 응답코드: ",response.status_code)
-            # print("시스템 응답내용: ",response.text)
+            
         return Response(status=200)
 
 
