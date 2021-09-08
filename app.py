@@ -42,6 +42,7 @@ class Customer(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     kakao_id = db.Column(db.String())
+    name = db.Column(db.String())
     datas = db.relationship('ChatList', backref='customer')
 
 class ChatList(db.Model):
@@ -75,12 +76,12 @@ message_list = []
 count_start = False
 
 
-def find_or_create_user(user_id):
+def find_or_create_user(user_id, name):
     try:
         customer = db.session.query(Customer).filter(Customer.kakao_id==user_id).one()
         return customer
     except:
-        customer = Customer(kakao_id=user_id)
+        customer = Customer(kakao_id=user_id, name=name)
         db.session.add(customer)
         db.session.commit()
         return customer
@@ -107,20 +108,20 @@ def get_today():
     return f"{today.tm_year}-{today.tm_mon}-{today.tm_mday}"
 
 
-def text_from_chat(request_data, imotion, words, message_to_model, reply):
+def text_from_chat(request_data, imotion, words, message_to_model, reply, name):
     user_id = str(request_data['user'])
     print(user_id)
     time_stamp = time.ctime(time.time())
     today = get_today()
 
-    customer = find_or_create_user(user_id)
+    customer = find_or_create_user(user_id, name)
 
     chatlist = find_or_create_date(today, customer)
     
     create_chat(time_stamp, imotion, words, chatlist, message_to_model, reply)    
 
 
-async def waiting(body):
+async def waiting(body, name):
     global wait_count
     global message_list
 
@@ -144,10 +145,29 @@ async def waiting(body):
             imotion = result[0]
             words = result[1]
             reply = result[2]
-            text_from_chat(body, imotion, words, message_join, reply)
+            text_from_chat(body, imotion, words, message_join, reply, name)
             # 대답후 사용자의 대화를 받기 위해 리스트 초기화
             message_list = []
             return reply
+
+def send_to_naver(result, body):
+    headers={
+        'Content-Type': 'application/json;charset=UTF-8',
+        'Authorization': NAVER_API,
+    }
+    user_key = body['user']
+    data = {
+        "event": "send",
+        "user": user_key,
+        "textContent":{
+            "text":result
+        }
+    }
+    message = json.dumps(data)
+    response = requests.post('https://gw.talk.naver.com/chatbot/v1/event', headers=headers, data=message)
+    print("시스템 응답코드: ",response.status_code)
+    print("시스템 응답내용: ",response.text)
+    return message # Response(status=200)
 
 # 카톡으로부터 요청
 @app.route('/backend/sendMessage',methods=['POST'])
@@ -157,35 +177,52 @@ async def get_massages_from_chatbot():
     # 입력이 들어올때마다 카운트 0으로
     wait_count = 0
 
+    name= ""
+
     # 넘어온 JSON에서 메세지 받아 임시 리스트에 append
     body = request.get_json()
     message_to_model = body['textContent']['text']
-    print(message_to_model)
-    message_list.append(message_to_model)
-     # 처음 대화가 시작되는 순간에만 사용하기 위해 count_start 를 바꿔줌
-     # 두번째 말풍선부턴 실행되지 않음
-    if count_start == False:
-        count_start = True
-        # waiting() 으로 완성된 문구를 리턴받음
-        result = await waiting(body)
-
-        headers={
-            'Content-Type': 'application/json;charset=UTF-8',
-            'Authorization': NAVER_API,
-        }
-        user_key = body['user']
-        data = {
-            "event": "send",
-            "user": user_key,
-            "textContent":{
-                "text":result
-            }
-        }
-        message = json.dumps(data)
-        response = requests.post('https://gw.talk.naver.com/chatbot/v1/event', headers=headers, data=message)
-        print("시스템 응답코드: ",response.status_code)
-        print("시스템 응답내용: ",response.text)
-    return Response(status=200)
+    try:
+        user_id = body['user']
+        db.session.query(Customer).filter(Customer.kakao_id==user_id).one()
+    except:
+        command = message_to_model.split(' ')
+        if '/이름' == command[0]:
+            name = command[1]
+            user_id = body['user']
+            
+            find_or_create_user(user_id, name)
+            return send_to_naver(f"환영합니다 {name}님", body)
+        else:
+            new_name_comment = "처음 사용이시라면 '/이름 홍길동' 양식으로 입력해주세요."
+            return send_to_naver(new_name_comment, body)
+    else:
+        print(message_to_model)
+        message_list.append(message_to_model)
+        # 처음 대화가 시작되는 순간에만 사용하기 위해 count_start 를 바꿔줌
+        # 두번째 말풍선부턴 실행되지 않음
+        if count_start == False:
+            count_start = True
+            # waiting() 으로 완성된 문구를 리턴받음
+            result = await waiting(body, name)
+            send_to_naver(result, body)
+            # headers={
+            #     'Content-Type': 'application/json;charset=UTF-8',
+            #     'Authorization': NAVER_API,
+            # }
+            # user_key = body['user']
+            # data = {
+            #     "event": "send",
+            #     "user": user_key,
+            #     "textContent":{
+            #         "text":result
+            #     }
+            # }
+            # message = json.dumps(data)
+            # response = requests.post('https://gw.talk.naver.com/chatbot/v1/event', headers=headers, data=message)
+            # print("시스템 응답코드: ",response.status_code)
+            # print("시스템 응답내용: ",response.text)
+        return Response(status=200)
 
 
 
