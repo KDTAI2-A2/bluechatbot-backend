@@ -196,7 +196,7 @@ async def get_massages_from_chatbot():
         else:
             new_name_comment = "처음 사용이시라면 '/이름 홍길동' 양식으로 입력해주세요."
             send_to_naver(new_name_comment, body)
-            return 
+            return Response(status=200)
     else:
         print(message_to_model)
         message_list.append(message_to_model)
