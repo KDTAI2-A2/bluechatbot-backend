@@ -167,7 +167,7 @@ def send_to_naver(result, body):
     response = requests.post('https://gw.talk.naver.com/chatbot/v1/event', headers=headers, data=message)
     print("시스템 응답코드: ",response.status_code)
     print("시스템 응답내용: ",response.text)
-    return message # Response(status=200)
+    return Response(status=200)
 
 # 카톡으로부터 요청
 @app.route('/backend/sendMessage',methods=['POST'])
@@ -195,7 +195,8 @@ async def get_massages_from_chatbot():
             return send_to_naver(f"환영합니다 {name}님", body)
         else:
             new_name_comment = "처음 사용이시라면 '/이름 홍길동' 양식으로 입력해주세요."
-            return send_to_naver(new_name_comment, body)
+            send_to_naver(new_name_comment, body)
+            return 
     else:
         print(message_to_model)
         message_list.append(message_to_model)
