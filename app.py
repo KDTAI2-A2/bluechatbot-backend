@@ -224,7 +224,7 @@ def request_user_data(id):
         data.append(json)
     return jsonify(data)
 
-@app.route('/frontend/getUser/<int:id>/getDate/<date>/')
+@app.route('/frontend/getUser/<id>/getDate/<date>/')
 @cross_origin()
 def request_date_data(id, date):
     imotions = {}
