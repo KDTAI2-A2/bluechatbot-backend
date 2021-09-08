@@ -27,10 +27,10 @@ POSTGRES_PW=os.getenv("POSTGRES_PW")
 DATABASE_URL=os.getenv("DB_URL")
 NAVER_API=os.getenv("NAVER_API")
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+# app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.debug = True
 
@@ -205,7 +205,7 @@ def request_users_data():
         data.append(json)
     return jsonify(data)
 
-@app.route('/frontend/getUser/<int:id>/')
+@app.route('/frontend/getUser/<id>/')
 @cross_origin()
 def request_user_data(id):
     request_id = str(id)
