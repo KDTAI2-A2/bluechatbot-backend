@@ -108,7 +108,7 @@ def get_today():
 
 
 def text_from_chat(request_data, imotion, words, message_to_model, reply):
-    user_id = request_data['user']
+    user_id = str(request_data['user'])
     print(user_id)
     time_stamp = time.ctime(time.time())
     today = get_today()
