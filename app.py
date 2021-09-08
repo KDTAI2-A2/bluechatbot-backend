@@ -133,8 +133,8 @@ async def waiting(body):
         if wait_count > 4:
             global count_start
             count_start = False
-            message_to_model = "".join(message_list)
-            message_to_model = json.dumps({"msg":message_to_model}, ensure_ascii=False).encode('utf-8')
+            message_join = "".join(message_list)
+            message_to_model = json.dumps({"msg":message_join}, ensure_ascii=False).encode('utf-8')
             
             print(message_to_model, type(message_to_model))
             # API로 리턴 받은 대답을 리턴해줌
@@ -144,7 +144,7 @@ async def waiting(body):
             imotion = result[0]
             words = result[1]
             reply = result[2]
-            text_from_chat(body, imotion, words, message_to_model, reply)
+            text_from_chat(body, imotion, words, message_join, reply)
             # 대답후 사용자의 대화를 받기 위해 리스트 초기화
             message_list = []
             return reply
