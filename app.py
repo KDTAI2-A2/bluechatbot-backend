@@ -239,7 +239,7 @@ def request_users_data():
     customers = db.session.query(Customer).all()
     data = []
     for i in customers:
-        json = {"id": i.id, "kakao_id": i.kakao_id}
+        json = {"id": i.id, "kakao_id": i.kakao_id, "name": i.name}
         data.append(json)
     return jsonify(data)
 
