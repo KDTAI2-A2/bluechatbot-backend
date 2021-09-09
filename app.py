@@ -172,19 +172,19 @@ def send_to_naver(result, user_id):
 
 # 스케줄링
 sched = BackgroundScheduler()
-@sched.scheduled_job('cron', second='10, 50', id='scheduling')
+@sched.scheduled_job('cron', second='9, 13, 18', id='scheduling')
 def scheduling():
     # kakao_id의 사용자들 tuple형태로 반환
     users = db.session.query(Customer).all()
     print(users)
 
-    now_time = str(time.strftime("%S"))
+    now_time = str(time.strftime("%H"))
 
-    if now_time == "10":
+    if now_time == "9":
         comment = "좋은 아침입니다. 어떤하루를 보내실건가요?"
-    elif now_time == "30":
+    elif now_time == "13":
         comment = "오늘 점심은 무엇을 드실건가요?"
-    elif now_time == "50":
+    elif now_time == "18":
         comment = "오늘하루 어떠셨나요?"
     
     for i in users:
