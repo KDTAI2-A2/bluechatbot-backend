@@ -172,10 +172,11 @@ def send_to_naver(result, user_id):
 
 # 스케줄링
 sched = BackgroundScheduler()
-@sched.scheduled_job('cron', second='10, 30, 50', id='scheduling')
+@sched.scheduled_job('cron', second='10, 50', id='scheduling')
 def scheduling():
     # kakao_id의 사용자들 tuple형태로 반환
     users = db.session.query(Customer).all()
+    print(users)
 
     now_time = str(time.strftime("%S"))
 
@@ -314,4 +315,4 @@ def request_date_data(id, date):
 
 if __name__ == '__main__':
     sched.start()
-    app.run(debug=True)
+    app.run(debug=False)
