@@ -6,7 +6,7 @@ import requests
 import asyncio
 import asgiref
 from flask_cors import CORS
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 
 
 
@@ -171,26 +171,23 @@ def send_to_naver(result, user_id):
     return Response(status=200)
 
 # 스케줄링
-sched = BlockingScheduler()
-@sched.scheduled_job('cron', second='10,30,50', id='scheduling')
+sched = BackgroundScheduler()
+@sched.scheduled_job('cron', second='10, 30, 50', id='scheduling')
 def scheduling():
     # kakao_id의 사용자들 tuple형태로 반환
-    users = db.session.query(Customer).filter(Customer.kakao_id).all()
+    users = db.session.query(Customer).all()
 
-    now_time = time.strftime("%S")
+    now_time = str(time.strftime("%S"))
 
     if now_time == "10":
         comment = "좋은 아침입니다. 어떤하루를 보내실건가요?"
-        print(comment)
     elif now_time == "30":
         comment = "오늘 점심은 무엇을 드실건가요?"
-        print(comment)
     elif now_time == "50":
         comment = "오늘하루 어떠셨나요?"
-        print(comment)
     
     for i in users:
-        send_to_naver(comment,i)
+        send_to_naver(comment,i.kakao_id)
         print(f'scheduling : {time.strftime("%H:%M:%S")},',comment) 
  
 
@@ -315,5 +312,5 @@ def request_date_data(id, date):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
     sched.start()
+    app.run(debug=True)
