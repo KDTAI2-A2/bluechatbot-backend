@@ -181,10 +181,13 @@ def scheduling():
 
     if now_time == "10":
         comment = "좋은 아침입니다. 어떤하루를 보내실건가요?"
+        print(comment)
     elif now_time == "30":
         comment = "오늘 점심은 무엇을 드실건가요?"
+        print(comment)
     elif now_time == "50":
         comment = "오늘하루 어떠셨나요?"
+        print(comment)
     
     for i in users:
         send_to_naver(comment,i)
