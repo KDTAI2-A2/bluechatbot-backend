@@ -6,6 +6,7 @@ import requests
 import asyncio
 import asgiref
 from flask_cors import CORS
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 
 
@@ -27,10 +28,10 @@ POSTGRES_PW=os.getenv("POSTGRES_PW")
 DATABASE_URL=os.getenv("DB_URL")
 NAVER_API=os.getenv("NAVER_API")
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+# app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.debug = True
 
@@ -169,6 +170,30 @@ def send_to_naver(result, user_id):
     print("시스템 응답내용: ",response.text)
     return Response(status=200)
 
+# 스케줄링
+sched = BlockingScheduler()
+@sched.scheduled_job('cron', second='10,30,50', id='scheduling')
+def scheduling():
+    # kakao_id의 사용자들 tuple형태로 반환
+    users = db.session.query(Customer).filter(Customer.kakao_id).all()
+
+    now_time = time.strftime("%S")
+
+    if now_time == "10":
+        comment = "좋은 아침입니다. 어떤하루를 보내실건가요?"
+    elif now_time == "30":
+        comment = "오늘 점심은 무엇을 드실건가요?"
+    elif now_time == "50":
+        comment = "오늘하루 어떠셨나요?"
+    
+    for i in users:
+        send_to_naver(comment,i)
+        print(f'scheduling : {time.strftime("%H:%M:%S")},',comment) 
+ 
+
+
+
+
 # 카톡으로부터 요청
 @app.route('/backend/sendMessage',methods=['POST'])
 async def get_massages_from_chatbot():
@@ -288,3 +313,4 @@ def request_date_data(id, date):
 
 if __name__ == '__main__':
     app.run(debug=True)
+    sched.start()
