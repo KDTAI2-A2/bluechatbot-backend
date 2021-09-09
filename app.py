@@ -187,6 +187,7 @@ def scheduling():
         comment = "오늘하루 어떠셨나요?"
     
     for i in users:
+        print(i.kakao_id)
         send_to_naver(comment,i.kakao_id)
         print(f'scheduling : {time.strftime("%H:%M:%S")},',comment) 
  
