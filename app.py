@@ -28,10 +28,10 @@ POSTGRES_PW=os.getenv("POSTGRES_PW")
 DATABASE_URL=os.getenv("DB_URL")
 NAVER_API=os.getenv("NAVER_API")
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
+app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{POSTGRES_ID}:{POSTGRES_PW}@localhost/kakao-flask"
 
 
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+# app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.debug = True
 
@@ -66,6 +66,17 @@ class Chat(db.Model):
     bot_message = db.Column(db.String())
     chatlist_id = db.Column(db.Integer, db.ForeignKey('ChatList.id'), nullable=False)
     
+class Metric(db.Model):
+    __tablename__="Metric"
+
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    user_first = db.Column(db.String())
+    bot_first = db.Column(db.String())
+    user_second = db.Column(db.String())
+    bot_second = db.Column(db.String())
+    mood_score = db.Column(db.Integer())
+    compatibility_score = db.Column(db.Integer())
+
 
 # 초기화
 db.create_all()
@@ -192,7 +203,38 @@ def scheduling():
         send_to_naver(comment,i.kakao_id)
         print(f'scheduling : {time.strftime("%H:%M:%S")},',comment) 
  
+@app.route('/backend/makemetric',methods=['POST'])
+@cross_origin()
+def make_metric_score():
+    body = request.get_json()
+    print(body['data']['user_first'])
+    metric = Metric(
+        user_first=body['data']['user_first'],
+        bot_first=body['data']['bot_first'],
+        user_second=body['data']['user_second'],
+        bot_second=body['data']['bot_second'],
+        mood_score=body['data']['mood_score'],
+        compatibility_score=body['data']['compatibility_score']
+    )
+    db.session.add(metric)
+    db.session.commit()
+    return Response(status=200)
 
+@app.route('/frontend/getMetrics/')
+def request_merics_data():
+    metrics= db.session.query(Metric).all()
+    data=[]
+    for i in metrics:
+        json = {
+            "user_first":i.user_first,
+            "bot_first":i.bot_first,
+            "user_second":i.user_second,
+            "bot_second":i.bot_second,
+            "mood_score":i.mood_score,
+            "compatibility_score":i.compatibility_score
+        }
+        data.append(json)
+    return jsonify(data)
 
 
 
@@ -221,7 +263,7 @@ async def get_massages_from_chatbot():
             return send_to_naver(f"환영합니다 {name}님", user_id)
         else:
             new_name_comment = "처음 사용이시라면 '/이름 홍길동' 양식으로 입력해주세요."
-            send_to_naver(new_name_comment, body)
+            send_to_naver(new_name_comment, user_id)
             return Response(status=200)
     else:
         # 이름을 찾으면 정상적으로 진행
@@ -314,5 +356,5 @@ def request_date_data(id, date):
 
 
 if __name__ == '__main__':
-    sched.start()
+    # sched.start()
     app.run(debug=False)
